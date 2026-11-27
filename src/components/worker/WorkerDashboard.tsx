@@ -121,7 +121,7 @@ export function WorkerDashboard() {
       </div>
       <nav aria-label="Worker dashboard" className={`${menuOpen ? 'block' : 'hidden'} border-t border-white/[0.06] px-4 py-3 md:block md:border-0 md:px-6 md:py-0 lg:px-10`}>
         <div className="mx-auto flex max-w-[1440px] gap-2 overflow-x-auto pb-1 md:gap-6">
-          {navItems.map(({ id, label, icon: Icon }) => <Link key={id} href={id === 'today-jobs' ? '/worker/jobs' : id === 'schedule' ? '/worker/schedule' : `#${id}`} onClick={() => setMenuOpen(false)} className="inline-flex min-h-10 shrink-0 items-center gap-2 rounded-xl px-3 text-xs font-semibold text-white/55 transition hover:bg-white/[0.06] hover:text-white md:rounded-none md:px-1 md:pb-4 md:pt-1">
+          {navItems.map(({ id, label, icon: Icon }) => <Link key={id} href={id === 'today-jobs' ? '/worker/jobs' : id === 'schedule' ? '/worker/schedule' : id === 'earnings' ? '/worker/earnings' : `#${id}`} onClick={() => setMenuOpen(false)} className="inline-flex min-h-10 shrink-0 items-center gap-2 rounded-xl px-3 text-xs font-semibold text-white/55 transition hover:bg-white/[0.06] hover:text-white md:rounded-none md:px-1 md:pb-4 md:pt-1">
             <Icon size={15} /><span>{label}</span>{id === 'pending-requests' && pendingRequests.length > 0 && <span className="grid h-5 min-w-5 place-items-center rounded-full bg-orange px-1 text-[10px] font-bold text-[#101426]">{pendingRequests.length}</span>}
           </Link>)}
           <div className="ms-auto hidden md:block"><span className="rounded-full border border-white/10 bg-white/[0.035] px-3 py-2 text-[11px] text-white/45">{copy.todayLabel} · Multan</span></div>
@@ -193,7 +193,7 @@ export function WorkerDashboard() {
 
       <div className="mt-5 grid gap-5 lg:grid-cols-2">
         <section id="earnings" className="scroll-mt-36 rounded-2xl border border-white/[0.08] bg-white/[0.035] p-4 sm:p-6">
-          <div className="mb-5 flex items-start justify-between"><div><h2 className="text-base font-bold sm:text-lg">{copy.earnings}</h2><p className="mt-1 text-[11px] text-white/40">{language === 'ur' ? 'آپ کی محنت کا صلہ' : 'Keep track of your work'}</p></div><span className="grid h-10 w-10 place-items-center rounded-xl bg-emerald-300/10 text-emerald-200"><Banknote size={19} /></span></div>
+          <div className="mb-5 flex items-start justify-between"><div><h2 className="text-base font-bold sm:text-lg">{copy.earnings}</h2><p className="mt-1 text-[11px] text-white/40">{language === 'ur' ? 'آپ کی محنت کا صلہ' : 'Keep track of your work'}</p></div><Link href="/worker/earnings" className="grid h-10 w-10 place-items-center rounded-xl bg-emerald-300/10 text-emerald-200 transition hover:bg-emerald-300/20" aria-label={copy.earningsNav}><Banknote size={19} /></Link></div>
           <div className="grid grid-cols-3 divide-x divide-white/[0.07] rounded-xl bg-[#101426]/70 py-4 [direction:ltr]">
             {[{ label: copy.today, value: 'PKR 4,500' }, { label: copy.thisWeek, value: 'PKR 28,750' }, { label: copy.thisMonth, value: 'PKR 86,200' }].map((item) => <div key={item.label} className="px-2 text-center [direction:rtl]"><span className="block text-[9px] text-white/40 sm:text-[10px]">{item.label}</span><strong className="mt-2 block text-xs font-bold text-white sm:text-sm">{item.value}</strong></div>)}
           </div>
