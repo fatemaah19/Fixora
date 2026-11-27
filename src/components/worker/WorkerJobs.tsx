@@ -10,28 +10,9 @@ import type { LucideIcon } from 'lucide-react';
 import { LanguageToggle } from '@/components/LanguageToggle';
 import { Logo } from '@/components/Logo';
 import { useT } from '@/contexts/LanguageProvider';
+import { mockWorkerJobs, WORKER_JOBS_STORAGE_KEY, type WorkerJob, type WorkerTrade as Trade, type WorkerJobStatus as JobStatus } from '@/lib/workerData';
 
-type Trade = 'ac' | 'electrician' | 'plumber' | 'carpenter';
-type JobStatus = 'accepted' | 'on_the_way' | 'in_progress' | 'completed';
 type JobFilter = 'all' | 'active' | 'completed';
-type WorkerJob = {
-  id: string;
-  trade: Trade;
-  title: string;
-  customer: string;
-  area: string;
-  time: string;
-  price: string;
-  status: JobStatus;
-};
-
-const STORAGE_KEY = 'fixora-worker-jobs';
-const seedJobs: WorkerJob[] = [
-  { id: 'J-1042', trade: 'ac', title: 'AC service and cooling check', customer: 'Ahmed Raza', area: 'Gulgasht', time: '09:30', price: 'PKR 4,500', status: 'in_progress' },
-  { id: 'J-1048', trade: 'electrician', title: 'Ceiling fan installation', customer: 'Fatima Noor', area: 'Model Town', time: '12:00', price: 'PKR 2,800', status: 'accepted' },
-  { id: 'J-1051', trade: 'plumber', title: 'Kitchen tap repair', customer: 'Ali Hassan', area: 'Bosan Road', time: '15:30', price: 'PKR 1,900', status: 'on_the_way' },
-  { id: 'J-1034', trade: 'carpenter', title: 'Bedroom door adjustment', customer: 'Sara Malik', area: 'Multan Cantt', time: 'Yesterday', price: 'PKR 3,200', status: 'completed' },
-];
 
 const tradeIcons: Record<Trade, LucideIcon> = {
   ac: Snowflake,
@@ -43,27 +24,27 @@ const tradeIcons: Record<Trade, LucideIcon> = {
 const ur = {
   title: 'میرے کام', subtitle: 'اپنے کام دیکھیں اور ہر مرحلے کو اپ ڈیٹ کریں۔', back: 'ڈیش بورڈ',
   all: 'تمام', active: 'جاری کام', completed: 'مکمل', activeJobs: 'جاری کام', empty: 'اس فہرست میں کوئی کام نہیں',
-  job: 'کام', customer: 'صارف', location: 'مقام', amount: 'طے شدہ رقم', today: 'آج', yesterday: 'گزشتہ روز',
+  job: 'کام', customer: 'صارف', location: 'مقام', amount: 'طے شدہ رقم', today: 'آج', yesterday: 'گزشتہ روز', tomorrow: 'کل',
   accepted: 'قبول شدہ', on_the_way: 'راستے میں', in_progress: 'کام جاری', completedStatus: 'مکمل',
   next: { accepted: 'راستے میں ہوں', on_the_way: 'کام شروع کریں', in_progress: 'کام مکمل کریں' },
   updated: 'کام کی حالت اپ ڈیٹ ہو گئی', steps: ['قبول شدہ', 'راستے میں', 'کام جاری', 'مکمل'],
   trades: { ac: 'اے سی ٹیکنیشن', electrician: 'الیکٹریشن', plumber: 'پلمبر', carpenter: 'کارپنٹر' },
-  titles: { 'AC service and cooling check': 'اے سی سروس اور کولنگ چیک', 'Ceiling fan installation': 'چھت والا پنکھا لگانا', 'Kitchen tap repair': 'کچن کے نل کی مرمت', 'Bedroom door adjustment': 'بیڈ روم کے دروازے کی درستگی' },
-  customers: { 'Ahmed Raza': 'احمد رضا', 'Fatima Noor': 'فاطمہ نور', 'Ali Hassan': 'علی حسن', 'Sara Malik': 'سارہ ملک' },
-  areas: { Gulgasht: 'گلگشت', 'Model Town': 'ماڈل ٹاؤن', 'Bosan Road': 'بوسن روڈ', 'Multan Cantt': 'ملتان کینٹ' },
+  titles: { 'AC service and cooling check': 'اے سی سروس اور کولنگ چیک', 'Ceiling fan installation': 'چھت والا پنکھا لگانا', 'Kitchen tap repair': 'کچن کے نل کی مرمت', 'Bedroom door adjustment': 'بیڈ روم کے دروازے کی درستگی', 'Install two ceiling lights': 'دو چھت کی لائٹس لگانا', 'AC making unusual noise': 'اے سی سے غیر معمولی آواز', 'Repair leaking kitchen sink': 'کچن کے سنک کا رساؤ ٹھیک کرنا', 'Adjust wardrobe door': 'الماری کے دروازے کی درستگی', 'Check a faulty wall switch': 'خراب دیواری سوئچ کی جانچ' },
+  customers: { 'Ahmed Raza': 'احمد رضا', 'Fatima Noor': 'فاطمہ نور', 'Ali Hassan': 'علی حسن', 'Sara Malik': 'سارہ ملک', 'Nida Khan': 'ندا خان', 'Hassan Raza': 'حسن رضا', 'Areeba Iqbal': 'عریبہ اقبال', 'Bilal Ahmed': 'بلال احمد', 'Zainab Ali': 'زینب علی' },
+  areas: { Gulgasht: 'گلگشت', 'Model Town': 'ماڈل ٹاؤن', 'Bosan Road': 'بوسن روڈ', 'Multan Cantt': 'ملتان کینٹ', 'Shah Rukn-e-Alam': 'شاہ رکن عالم' },
 };
 
 const en = {
   title: 'My jobs', subtitle: 'Review your work and update each job as you go.', back: 'Dashboard',
   all: 'All', active: 'Active', completed: 'Completed', activeJobs: 'active jobs', empty: 'No jobs in this list',
-  job: 'Job', customer: 'Customer', location: 'Location', amount: 'Agreed amount', today: 'Today', yesterday: 'Yesterday',
+  job: 'Job', customer: 'Customer', location: 'Location', amount: 'Agreed amount', today: 'Today', yesterday: 'Yesterday', tomorrow: 'Tomorrow',
   accepted: 'Accepted', on_the_way: 'On the way', in_progress: 'In progress', completedStatus: 'Completed',
   next: { accepted: 'I’m on my way', on_the_way: 'Start the job', in_progress: 'Mark complete' },
   updated: 'Job status updated', steps: ['Accepted', 'On the way', 'In progress', 'Completed'],
   trades: { ac: 'AC technician', electrician: 'Electrician', plumber: 'Plumber', carpenter: 'Carpenter' },
-  titles: { 'AC service and cooling check': 'AC service and cooling check', 'Ceiling fan installation': 'Ceiling fan installation', 'Kitchen tap repair': 'Kitchen tap repair', 'Bedroom door adjustment': 'Bedroom door adjustment' },
-  customers: { 'Ahmed Raza': 'Ahmed Raza', 'Fatima Noor': 'Fatima Noor', 'Ali Hassan': 'Ali Hassan', 'Sara Malik': 'Sara Malik' },
-  areas: { Gulgasht: 'Gulgasht', 'Model Town': 'Model Town', 'Bosan Road': 'Bosan Road', 'Multan Cantt': 'Multan Cantt' },
+  titles: { 'AC service and cooling check': 'AC service and cooling check', 'Ceiling fan installation': 'Ceiling fan installation', 'Kitchen tap repair': 'Kitchen tap repair', 'Bedroom door adjustment': 'Bedroom door adjustment', 'Install two ceiling lights': 'Install two ceiling lights', 'AC making unusual noise': 'AC making unusual noise', 'Repair leaking kitchen sink': 'Repair leaking kitchen sink', 'Adjust wardrobe door': 'Adjust wardrobe door', 'Check a faulty wall switch': 'Check a faulty wall switch' },
+  customers: { 'Ahmed Raza': 'Ahmed Raza', 'Fatima Noor': 'Fatima Noor', 'Ali Hassan': 'Ali Hassan', 'Sara Malik': 'Sara Malik', 'Nida Khan': 'Nida Khan', 'Hassan Raza': 'Hassan Raza', 'Areeba Iqbal': 'Areeba Iqbal', 'Bilal Ahmed': 'Bilal Ahmed', 'Zainab Ali': 'Zainab Ali' },
+  areas: { Gulgasht: 'Gulgasht', 'Model Town': 'Model Town', 'Bosan Road': 'Bosan Road', 'Multan Cantt': 'Multan Cantt', 'Shah Rukn-e-Alam': 'Shah Rukn-e-Alam' },
 };
 
 const order: JobStatus[] = ['accepted', 'on_the_way', 'in_progress', 'completed'];
@@ -77,11 +58,11 @@ export function WorkerJobs() {
 
   useEffect(() => {
     try {
-      const saved = localStorage.getItem(STORAGE_KEY);
+      const saved = localStorage.getItem(WORKER_JOBS_STORAGE_KEY);
       const parsed = saved ? JSON.parse(saved) as WorkerJob[] : null;
-      setJobs(Array.isArray(parsed) ? parsed : seedJobs);
+      setJobs(Array.isArray(parsed) ? parsed : mockWorkerJobs);
     } catch {
-      setJobs(seedJobs);
+      setJobs(mockWorkerJobs);
     }
   }, []);
 
@@ -100,7 +81,7 @@ export function WorkerJobs() {
         const currentStep = order.indexOf(job.status);
         return { ...job, status: order[Math.min(currentStep + 1, order.length - 1)] };
       });
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+      localStorage.setItem(WORKER_JOBS_STORAGE_KEY, JSON.stringify(updated));
       return updated;
     });
     setNotice(copy.updated);
@@ -146,7 +127,7 @@ export function WorkerJobs() {
             <div className="grid grid-cols-2 gap-3 border-t border-white/[0.06] bg-[#101426]/40 px-4 py-3 text-[10px] sm:grid-cols-3 sm:px-5">
               <span className="inline-flex items-center gap-2 text-white/50"><span className="grid h-7 w-7 place-items-center rounded-lg bg-white/[0.05] text-cyan"><BriefcaseBusiness size={13} /></span><span><span className="block text-white/30">{copy.customer}</span>{language === 'ur' ? copy.customers[job.customer as keyof typeof copy.customers] : job.customer}</span></span>
               <span className="inline-flex items-center gap-2 text-white/50"><span className="grid h-7 w-7 place-items-center rounded-lg bg-white/[0.05] text-cyan"><MapPin size={13} /></span><span><span className="block text-white/30">{copy.location}</span>{language === 'ur' ? copy.areas[job.area as keyof typeof copy.areas] : job.area}</span></span>
-              <span className="col-span-2 inline-flex items-center gap-2 text-white/50 sm:col-span-1"><span className="grid h-7 w-7 place-items-center rounded-lg bg-white/[0.05] text-cyan"><Clock3 size={13} /></span><span><span className="block text-white/30">{copy.job}</span>{job.time === 'Yesterday' ? copy.yesterday : `${copy.today} · ${job.time}`}</span></span>
+              <span className="col-span-2 inline-flex items-center gap-2 text-white/50 sm:col-span-1"><span className="grid h-7 w-7 place-items-center rounded-lg bg-white/[0.05] text-cyan"><Clock3 size={13} /></span><span><span className="block text-white/30">{copy.job}</span>{job.time === 'Yesterday' ? copy.yesterday : job.time.startsWith('Tomorrow · ') ? `${copy.tomorrow} · ${job.time.slice(11)}` : `${copy.today} · ${job.time}`}</span></span>
             </div>
             <div className="px-4 pb-4 pt-4 sm:px-5 sm:pb-5">
               <ol aria-label={language === 'ur' ? 'کام کی پیش رفت' : 'Job progress'} className="mb-4 grid grid-cols-4 gap-1">

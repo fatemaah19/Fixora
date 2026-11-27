@@ -12,9 +12,9 @@ import { LanguageToggle } from '@/components/LanguageToggle';
 import { Logo } from '@/components/Logo';
 import { useAuth } from '@/contexts/AuthProvider';
 import { useT } from '@/contexts/LanguageProvider';
+import { addAcceptedJob, mockAvailableJobs, readWorkerRequestDecisions, saveWorkerRequestDecision, type WorkerAvailableJob, type WorkerTrade as Trade } from '@/lib/workerData';
 
 type IconComponent = LucideIcon;
-type Trade = 'ac' | 'electrician' | 'plumber' | 'carpenter';
 type JobStatus = 'upcoming' | 'inProgress' | 'completed';
 
 const tradeIcons: Record<Trade, IconComponent> = {
@@ -30,16 +30,11 @@ const jobs: { id: string; trade: Trade; title: string; customer: string; area: s
   { id: 'J-1051', trade: 'plumber', title: 'Kitchen tap repair', customer: 'Ali Hassan', area: 'Bosan Road', time: '15:30', status: 'upcoming' },
 ];
 
-const initialRequests: { id: string; trade: Trade; title: string; area: string; distance: string; price: string; time: string }[] = [
-  { id: 'R-208', trade: 'electrician', title: 'Install two ceiling lights', area: 'Multan Cantt', distance: '2.4 km', price: 'PKR 2,500', time: '20 min ago' },
-  { id: 'R-211', trade: 'ac', title: 'AC making unusual noise', area: 'Shah Rukn-e-Alam', distance: '4.1 km', price: 'PKR 3,000', time: '45 min ago' },
-];
-
 const ur = {
   title: 'ورکر ڈیش بورڈ', overview: 'آج کا خلاصہ', greeting: 'السلام علیکم، عثمان!', subtitle: 'آج آپ کے لیے یہ کام اور مواقع موجود ہیں۔', profileNav: 'پروفائل',
   online: 'آن لائن', offline: 'آف لائن', available: 'آپ نئے کام کی درخواستیں وصول کر رہے ہیں', unavailable: 'آپ کو فی الحال نئی درخواستیں نہیں ملیں گی',
   todayJobs: 'آج کے کام', weekJobs: 'اس ہفتے مکمل', rating: 'آپ کی ریٹنگ', requests: 'نئی درخواستیں', schedule: 'آج کا شیڈول', scheduleNav: 'شیڈول', seeAll: 'تمام کام دیکھیں',
-  pending: 'زیرِ انتظار درخواستیں', nearby: 'قریب کے نئے کام', earnings: 'آمدنی کا خلاصہ', today: 'آج', thisWeek: 'اس ہفتے', thisMonth: 'اس ماہ',
+  pending: 'زیرِ انتظار درخواستیں', nearby: 'قریب کے نئے کام', viewRequests: 'تمام دیکھیں', earnings: 'آمدنی کا خلاصہ', today: 'آج', thisWeek: 'اس ہفتے', thisMonth: 'اس ماہ',
   performance: 'کارکردگی', completion: 'کام مکمل کرنے کی شرح', response: 'جواب دینے کی رفتار', satisfaction: 'صارفین کا اطمینان',
   inProgress: 'جاری ہے', upcoming: 'آنے والا', completed: 'مکمل', accept: 'قبول کریں', accepted: 'درخواست قبول ہو گئی', noRequests: 'فی الحال کوئی نئی درخواست نہیں',
   home: 'ڈیش بورڈ', jobs: 'میرے کام', newRequests: 'درخواستیں', earningsNav: 'آمدنی', logout: 'لاگ آؤٹ', todayLabel: 'آج',
@@ -54,7 +49,7 @@ const en = {
   title: 'Worker dashboard', overview: 'TODAY AT A GLANCE', greeting: 'Good morning, Usman!', subtitle: 'Here’s what is lined up for you today.', profileNav: 'Profile',
   online: 'Online', offline: 'Offline', available: 'You’re receiving new job requests', unavailable: 'You won’t receive new requests right now',
   todayJobs: 'Today’s jobs', weekJobs: 'Completed this week', rating: 'Your rating', requests: 'New requests', schedule: 'Today’s schedule', scheduleNav: 'Schedule', seeAll: 'View all jobs',
-  pending: 'Pending requests', nearby: 'New work nearby', earnings: 'Earnings overview', today: 'Today', thisWeek: 'This week', thisMonth: 'This month',
+  pending: 'Pending requests', nearby: 'New work nearby', viewRequests: 'View all', earnings: 'Earnings overview', today: 'Today', thisWeek: 'This week', thisMonth: 'This month',
   performance: 'Performance', completion: 'Job completion', response: 'Response time', satisfaction: 'Customer satisfaction',
   inProgress: 'In progress', upcoming: 'Upcoming', completed: 'Completed', accept: 'Accept job', accepted: 'Request accepted', noRequests: 'No new requests right now',
   home: 'Overview', jobs: 'My jobs', newRequests: 'Requests', earningsNav: 'Earnings', logout: 'Log out', todayLabel: 'Today',
@@ -72,12 +67,17 @@ export function WorkerDashboard() {
   const copy = language === 'ur' ? ur : en;
   const [isOnline, setIsOnline] = useState(true);
   const [menuOpen, setMenuOpen] = useState(false);
-  const [pendingRequests, setPendingRequests] = useState(initialRequests);
+  const [pendingRequests, setPendingRequests] = useState<WorkerAvailableJob[]>(mockAvailableJobs.slice(0, 2));
   const [notice, setNotice] = useState('');
 
   useEffect(() => {
     const saved = localStorage.getItem('fixora-worker-online');
     if (saved === 'true' || saved === 'false') setIsOnline(saved === 'true');
+  }, []);
+
+  useEffect(() => {
+    const decisions = readWorkerRequestDecisions();
+    setPendingRequests(mockAvailableJobs.slice(0, 2).filter((request) => !decisions[request.id]));
   }, []);
 
   function toggleAvailability() {
@@ -87,6 +87,11 @@ export function WorkerDashboard() {
   }
 
   function acceptRequest(id: string) {
+    const request = mockAvailableJobs.find((item) => item.id === id);
+    if (request) {
+      addAcceptedJob(request);
+      saveWorkerRequestDecision(id, 'accepted');
+    }
     setPendingRequests((current) => current.filter((request) => request.id !== id));
     setNotice(copy.accepted);
     window.setTimeout(() => setNotice(''), 2800);
@@ -122,7 +127,7 @@ export function WorkerDashboard() {
       </div>
       <nav aria-label="Worker dashboard" className={`${menuOpen ? 'block' : 'hidden'} border-t border-white/[0.06] px-4 py-3 md:block md:border-0 md:px-6 md:py-0 lg:px-10`}>
         <div className="mx-auto flex max-w-[1440px] gap-2 overflow-x-auto pb-1 md:gap-6">
-          {navItems.map(({ id, label, icon: Icon }) => <Link key={id} href={id === 'today-jobs' ? '/worker/jobs' : id === 'schedule' ? '/worker/schedule' : id === 'earnings' ? '/worker/earnings' : id === 'profile' ? '/worker/profile' : `#${id}`} onClick={() => setMenuOpen(false)} className="inline-flex min-h-10 shrink-0 items-center gap-2 rounded-xl px-3 text-xs font-semibold text-white/55 transition hover:bg-white/[0.06] hover:text-white md:rounded-none md:px-1 md:pb-4 md:pt-1">
+          {navItems.map(({ id, label, icon: Icon }) => <Link key={id} href={id === 'today-jobs' ? '/worker/jobs' : id === 'schedule' ? '/worker/schedule' : id === 'pending-requests' ? '/worker/available' : id === 'earnings' ? '/worker/earnings' : id === 'profile' ? '/worker/profile' : `#${id}`} onClick={() => setMenuOpen(false)} className="inline-flex min-h-10 shrink-0 items-center gap-2 rounded-xl px-3 text-xs font-semibold text-white/55 transition hover:bg-white/[0.06] hover:text-white md:rounded-none md:px-1 md:pb-4 md:pt-1">
             <Icon size={15} /><span>{label}</span>{id === 'pending-requests' && pendingRequests.length > 0 && <span className="grid h-5 min-w-5 place-items-center rounded-full bg-orange px-1 text-[10px] font-bold text-[#101426]">{pendingRequests.length}</span>}
           </Link>)}
           <div className="ms-auto hidden md:block"><span className="rounded-full border border-white/10 bg-white/[0.035] px-3 py-2 text-[11px] text-white/45">{copy.todayLabel} · Multan</span></div>
@@ -178,7 +183,7 @@ export function WorkerDashboard() {
         </section>
 
         <section id="pending-requests" className="scroll-mt-36 rounded-2xl border border-white/[0.08] bg-white/[0.035] p-4 sm:p-6">
-          <div className="mb-4 flex items-center justify-between gap-3"><div><h2 className="text-base font-bold sm:text-lg">{copy.pending}</h2><p className="mt-1 text-[11px] text-white/40">{copy.nearby}</p></div><span className="grid h-8 min-w-8 place-items-center rounded-full bg-orange/10 px-2 text-xs font-bold text-orange">{pendingRequests.length}</span></div>
+          <div className="mb-4 flex items-center justify-between gap-3"><div><h2 className="text-base font-bold sm:text-lg">{copy.pending}</h2><p className="mt-1 text-[11px] text-white/40">{copy.nearby}</p></div><div className="flex items-center gap-2"><Link href="/worker/available" className="min-h-9 inline-flex items-center rounded-lg px-2 text-[10px] font-semibold text-cyan hover:bg-cyan/10">{copy.viewRequests}<ArrowUpRight size={13} /></Link><span className="grid h-8 min-w-8 place-items-center rounded-full bg-orange/10 px-2 text-xs font-bold text-orange">{pendingRequests.length}</span></div></div>
           {notice && <div role="status" className="mb-3 flex items-center gap-2 rounded-xl border border-emerald-300/20 bg-emerald-300/[0.07] px-3 py-2 text-[11px] text-emerald-200"><Check size={14} />{notice}</div>}
           {pendingRequests.length === 0 ? <div className="grid min-h-48 place-items-center rounded-xl border border-dashed border-white/10 px-5 text-center text-xs text-white/45"><p><CheckCircle2 size={25} className="mx-auto mb-2 text-emerald-300" />{copy.noRequests}</p></div> : <div className="grid gap-3">
             {pendingRequests.map((request) => {
