@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import {
   ArrowUpLeft, ArrowUpRight, Banknote, Bell, BriefcaseBusiness, CalendarDays,
   Check, CheckCircle2, Clock3, Droplets, Hammer, MapPin, Menu, Snowflake,
-  Star, TrendingUp, Wrench, X, Zap, type LucideIcon,
+  Star, TrendingUp, UserRound, Wrench, X, Zap, type LucideIcon,
 } from 'lucide-react';
 import { LanguageToggle } from '@/components/LanguageToggle';
 import { Logo } from '@/components/Logo';
@@ -36,7 +36,7 @@ const initialRequests: { id: string; trade: Trade; title: string; area: string; 
 ];
 
 const ur = {
-  title: 'ورکر ڈیش بورڈ', overview: 'آج کا خلاصہ', greeting: 'السلام علیکم، عثمان!', subtitle: 'آج آپ کے لیے یہ کام اور مواقع موجود ہیں۔',
+  title: 'ورکر ڈیش بورڈ', overview: 'آج کا خلاصہ', greeting: 'السلام علیکم، عثمان!', subtitle: 'آج آپ کے لیے یہ کام اور مواقع موجود ہیں۔', profileNav: 'پروفائل',
   online: 'آن لائن', offline: 'آف لائن', available: 'آپ نئے کام کی درخواستیں وصول کر رہے ہیں', unavailable: 'آپ کو فی الحال نئی درخواستیں نہیں ملیں گی',
   todayJobs: 'آج کے کام', weekJobs: 'اس ہفتے مکمل', rating: 'آپ کی ریٹنگ', requests: 'نئی درخواستیں', schedule: 'آج کا شیڈول', scheduleNav: 'شیڈول', seeAll: 'تمام کام دیکھیں',
   pending: 'زیرِ انتظار درخواستیں', nearby: 'قریب کے نئے کام', earnings: 'آمدنی کا خلاصہ', today: 'آج', thisWeek: 'اس ہفتے', thisMonth: 'اس ماہ',
@@ -51,7 +51,7 @@ const ur = {
 };
 
 const en = {
-  title: 'Worker dashboard', overview: 'TODAY AT A GLANCE', greeting: 'Good morning, Usman!', subtitle: 'Here’s what is lined up for you today.',
+  title: 'Worker dashboard', overview: 'TODAY AT A GLANCE', greeting: 'Good morning, Usman!', subtitle: 'Here’s what is lined up for you today.', profileNav: 'Profile',
   online: 'Online', offline: 'Offline', available: 'You’re receiving new job requests', unavailable: 'You won’t receive new requests right now',
   todayJobs: 'Today’s jobs', weekJobs: 'Completed this week', rating: 'Your rating', requests: 'New requests', schedule: 'Today’s schedule', scheduleNav: 'Schedule', seeAll: 'View all jobs',
   pending: 'Pending requests', nearby: 'New work nearby', earnings: 'Earnings overview', today: 'Today', thisWeek: 'This week', thisMonth: 'This month',
@@ -98,6 +98,7 @@ export function WorkerDashboard() {
     { id: 'schedule', label: copy.scheduleNav, icon: CalendarDays },
     { id: 'pending-requests', label: copy.newRequests, icon: Bell },
     { id: 'earnings', label: copy.earningsNav, icon: Banknote },
+    { id: 'profile', label: copy.profileNav, icon: UserRound },
   ];
 
   return <div className="min-h-screen bg-[#0c1020] text-white">
@@ -121,7 +122,7 @@ export function WorkerDashboard() {
       </div>
       <nav aria-label="Worker dashboard" className={`${menuOpen ? 'block' : 'hidden'} border-t border-white/[0.06] px-4 py-3 md:block md:border-0 md:px-6 md:py-0 lg:px-10`}>
         <div className="mx-auto flex max-w-[1440px] gap-2 overflow-x-auto pb-1 md:gap-6">
-          {navItems.map(({ id, label, icon: Icon }) => <Link key={id} href={id === 'today-jobs' ? '/worker/jobs' : id === 'schedule' ? '/worker/schedule' : id === 'earnings' ? '/worker/earnings' : `#${id}`} onClick={() => setMenuOpen(false)} className="inline-flex min-h-10 shrink-0 items-center gap-2 rounded-xl px-3 text-xs font-semibold text-white/55 transition hover:bg-white/[0.06] hover:text-white md:rounded-none md:px-1 md:pb-4 md:pt-1">
+          {navItems.map(({ id, label, icon: Icon }) => <Link key={id} href={id === 'today-jobs' ? '/worker/jobs' : id === 'schedule' ? '/worker/schedule' : id === 'earnings' ? '/worker/earnings' : id === 'profile' ? '/worker/profile' : `#${id}`} onClick={() => setMenuOpen(false)} className="inline-flex min-h-10 shrink-0 items-center gap-2 rounded-xl px-3 text-xs font-semibold text-white/55 transition hover:bg-white/[0.06] hover:text-white md:rounded-none md:px-1 md:pb-4 md:pt-1">
             <Icon size={15} /><span>{label}</span>{id === 'pending-requests' && pendingRequests.length > 0 && <span className="grid h-5 min-w-5 place-items-center rounded-full bg-orange px-1 text-[10px] font-bold text-[#101426]">{pendingRequests.length}</span>}
           </Link>)}
           <div className="ms-auto hidden md:block"><span className="rounded-full border border-white/10 bg-white/[0.035] px-3 py-2 text-[11px] text-white/45">{copy.todayLabel} · Multan</span></div>
