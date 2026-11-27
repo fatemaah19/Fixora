@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import {
   ArrowUpLeft, ArrowUpRight, Banknote, Bell, BriefcaseBusiness, CalendarDays,
@@ -119,9 +120,9 @@ export function WorkerDashboard() {
       </div>
       <nav aria-label="Worker dashboard" className={`${menuOpen ? 'block' : 'hidden'} border-t border-white/[0.06] px-4 py-3 md:block md:border-0 md:px-6 md:py-0 lg:px-10`}>
         <div className="mx-auto flex max-w-[1440px] gap-2 overflow-x-auto pb-1 md:gap-6">
-          {navItems.map(({ id, label, icon: Icon }) => <a key={id} href={`#${id}`} onClick={() => setMenuOpen(false)} className="inline-flex min-h-10 shrink-0 items-center gap-2 rounded-xl px-3 text-xs font-semibold text-white/55 transition hover:bg-white/[0.06] hover:text-white md:rounded-none md:px-1 md:pb-4 md:pt-1">
+          {navItems.map(({ id, label, icon: Icon }) => <Link key={id} href={id === 'today-jobs' ? '/worker/jobs' : `#${id}`} onClick={() => setMenuOpen(false)} className="inline-flex min-h-10 shrink-0 items-center gap-2 rounded-xl px-3 text-xs font-semibold text-white/55 transition hover:bg-white/[0.06] hover:text-white md:rounded-none md:px-1 md:pb-4 md:pt-1">
             <Icon size={15} /><span>{label}</span>{id === 'pending-requests' && pendingRequests.length > 0 && <span className="grid h-5 min-w-5 place-items-center rounded-full bg-orange px-1 text-[10px] font-bold text-[#101426]">{pendingRequests.length}</span>}
-          </a>)}
+          </Link>)}
           <div className="ms-auto hidden md:block"><span className="rounded-full border border-white/10 bg-white/[0.035] px-3 py-2 text-[11px] text-white/45">{copy.todayLabel} · Multan</span></div>
         </div>
         {menuOpen && <div className="pt-3 sm:hidden"><LanguageToggle /></div>}
@@ -158,7 +159,7 @@ export function WorkerDashboard() {
 
       <div className="grid gap-5 xl:grid-cols-[1.15fr_0.85fr]">
         <section id="today-jobs" className="scroll-mt-36 rounded-2xl border border-white/[0.08] bg-white/[0.035] p-4 sm:p-6">
-          <div className="mb-4 flex items-center justify-between gap-3"><div><h2 className="text-base font-bold sm:text-lg">{copy.schedule}</h2><p className="mt-1 text-[11px] text-white/40">{language === 'ur' ? 'آج کے لیے تین کام' : '3 appointments on your schedule'}</p></div><a href="#today-jobs" className="inline-flex min-h-10 items-center gap-1 rounded-xl px-2 text-[11px] font-semibold text-cyan hover:bg-cyan/10">{copy.seeAll} {language === 'ur' ? <ArrowUpLeft size={14} /> : <ArrowUpRight size={14} />}</a></div>
+          <div className="mb-4 flex items-center justify-between gap-3"><div><h2 className="text-base font-bold sm:text-lg">{copy.schedule}</h2><p className="mt-1 text-[11px] text-white/40">{language === 'ur' ? 'آج کے لیے تین کام' : '3 appointments on your schedule'}</p></div><Link href="/worker/jobs" className="inline-flex min-h-10 items-center gap-1 rounded-xl px-2 text-[11px] font-semibold text-cyan hover:bg-cyan/10">{copy.seeAll} {language === 'ur' ? <ArrowUpLeft size={14} /> : <ArrowUpRight size={14} />}</Link></div>
           <div className="grid gap-3">
             {jobs.map((job) => {
               const Icon = tradeIcons[job.trade];
