@@ -14,6 +14,7 @@ import { useAuth } from '@/contexts/AuthProvider';
 import { useT } from '@/contexts/LanguageProvider';
 import { readAvailableWorkerRequests, resolveWorkerRequest, type WorkerAvailableJob, type WorkerTrade as Trade } from '@/lib/workerData';
 import { localizedText } from '@/lib/localization';
+import { unreadNotificationCount } from '@/lib/notificationData';
 
 type IconComponent = LucideIcon;
 type JobStatus = 'upcoming' | 'inProgress' | 'completed';
@@ -70,6 +71,7 @@ export function WorkerDashboard() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [pendingRequests, setPendingRequests] = useState<WorkerAvailableJob[]>([]);
   const [notice, setNotice] = useState('');
+  const [unreadCount, setUnreadCount] = useState(0);
 
   useEffect(() => {
     const saved = localStorage.getItem('fixora-worker-online');
@@ -78,6 +80,13 @@ export function WorkerDashboard() {
 
   useEffect(() => {
     setPendingRequests(readAvailableWorkerRequests().slice(0, 2));
+  }, []);
+
+  useEffect(() => {
+    const sync = () => setUnreadCount(unreadNotificationCount('worker'));
+    sync();
+    window.addEventListener('fixora:notifications-updated', sync);
+    return () => window.removeEventListener('fixora:notifications-updated', sync);
   }, []);
 
   function toggleAvailability() {
@@ -112,6 +121,7 @@ export function WorkerDashboard() {
           <span className="hidden truncate text-sm font-semibold text-white/80 sm:block">{copy.title}</span>
         </div>
         <div className="flex items-center gap-2 sm:gap-3">
+          <Link href="/worker/notifications" aria-label={language === 'ur' ? 'اطلاعات' : 'Notifications'} className="relative grid h-10 w-10 place-items-center rounded-xl border border-white/10 bg-white/[0.04] text-white/75 transition hover:bg-white/[0.08]"><Bell size={18} />{unreadCount > 0 && <span className="absolute -right-1 -top-1 grid h-4 min-w-4 place-items-center rounded-full bg-orange px-1 text-[9px] font-bold text-[#101426]">{unreadCount}</span>}</Link>
           <div className="hidden sm:block"><LanguageToggle /></div>
           <span className="grid h-10 w-10 place-items-center rounded-full border border-cyan/20 bg-cyan/10 text-xs font-bold text-cyan" aria-label="Usman, worker profile">U</span>
           <button type="button" onClick={() => setMenuOpen((value) => !value)} aria-label={menuOpen ? 'Close navigation' : 'Open navigation'} aria-expanded={menuOpen} className="grid h-10 w-10 place-items-center rounded-xl border border-white/10 bg-white/[0.04] text-white/75 md:hidden">
