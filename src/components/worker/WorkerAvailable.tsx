@@ -7,7 +7,8 @@ import type { LucideIcon } from 'lucide-react';
 import { LanguageToggle } from '@/components/LanguageToggle';
 import { Logo } from '@/components/Logo';
 import { useT } from '@/contexts/LanguageProvider';
-import { addAcceptedJob, mockAvailableJobs, readWorkerRequestDecisions, saveWorkerRequestDecision, type WorkerAvailableJob, type WorkerTrade } from '@/lib/workerData';
+import { readAvailableWorkerRequests, resolveWorkerRequest, type WorkerAvailableJob, type WorkerTrade } from '@/lib/workerData';
+import { localizedText } from '@/lib/localization';
 
 type TradeFilter = 'all' | WorkerTrade;
 
@@ -26,7 +27,7 @@ const ur = {
   electrician: 'الیکٹریشن', ac: 'اے سی ٹیکنیشن', plumber: 'پلمبر', carpenter: 'کارپنٹر',
   offer: 'تجویز کردہ معاوضہ', distance: 'فاصلہ', appointment: 'مطلوبہ وقت', posted: 'موصول', customer: 'صارف',
   accept: 'کام قبول کریں', decline: 'نظر انداز کریں', accepted: 'کام آپ کی فہرست میں شامل ہو گیا۔', declined: 'درخواست نظر انداز کر دی گئی۔',
-  empty: 'اس فلٹر میں کوئی دستیاب کام نہیں۔', resolved: 'تمام درخواستیں دیکھی جا چکی ہیں۔', sameDay: 'آج دستیاب',
+  empty: 'اس فلٹر میں کوئی دستیاب کام نہیں۔', resolved: 'تمام درخواستیں دیکھی جا چکی ہیں۔', sameDay: 'آج دستیاب', newRequest: 'نئی سروس درخواست', detailsProvidedUrdu: 'صارف نے مسئلے کی تفصیل اردو میں فراہم کی ہے۔', quotePending: 'معاوضہ بات چیت سے طے ہوگا', distanceUnknown: 'فاصلہ دستیاب نہیں', appointmentPending: 'وقت طے ہونا باقی ہے', genericCustomer: 'صارف',
   titles: { 'Install two ceiling lights': 'دو چھت کی لائٹس لگانا', 'AC making unusual noise': 'اے سی سے غیر معمولی آواز', 'Repair leaking kitchen sink': 'کچن کے سنک کا رساؤ ٹھیک کرنا', 'Adjust wardrobe door': 'الماری کے دروازے کی درستگی', 'Check a faulty wall switch': 'خراب دیواری سوئچ کی جانچ' },
   descriptions: {
     'Two ceiling light points need installation in the living room.': 'ڈرائنگ روم میں دو چھت والی لائٹس لگوانی ہیں۔',
@@ -46,7 +47,7 @@ const en = {
   electrician: 'Electrician', ac: 'AC technician', plumber: 'Plumber', carpenter: 'Carpenter',
   offer: 'Offered amount', distance: 'Distance', appointment: 'Requested time', posted: 'Posted', customer: 'Customer',
   accept: 'Accept job', decline: 'Dismiss', accepted: 'Job added to My Jobs.', declined: 'Request dismissed.',
-  empty: 'No available jobs match this filter.', resolved: 'You’ve reviewed all available requests.', sameDay: 'Today',
+  empty: 'No available jobs match this filter.', resolved: 'You’ve reviewed all available requests.', sameDay: 'Today', newRequest: 'New service request', detailsProvidedUrdu: 'The customer provided the issue details in Urdu.', quotePending: 'To be discussed', distanceUnknown: 'Not calculated', appointmentPending: 'To be arranged', genericCustomer: 'Customer',
   titles: { 'Install two ceiling lights': 'Install two ceiling lights', 'AC making unusual noise': 'AC making unusual noise', 'Repair leaking kitchen sink': 'Repair leaking kitchen sink', 'Adjust wardrobe door': 'Adjust wardrobe door', 'Check a faulty wall switch': 'Check a faulty wall switch' },
   descriptions: {
     'Two ceiling light points need installation in the living room.': 'Two ceiling light points need installation in the living room.',
@@ -69,8 +70,7 @@ export function WorkerAvailable() {
   const [notice, setNotice] = useState('');
 
   useEffect(() => {
-    const decisions = readWorkerRequestDecisions();
-    setRequests(mockAvailableJobs.filter((request) => !decisions[request.id]));
+    setRequests(readAvailableWorkerRequests());
   }, []);
 
   const visible = useMemo(() => {
@@ -87,8 +87,7 @@ export function WorkerAvailable() {
   }, [copy, filter, language, query, requests]);
 
   function resolveRequest(request: WorkerAvailableJob, decision: 'accepted' | 'declined') {
-    if (decision === 'accepted') addAcceptedJob(request);
-    saveWorkerRequestDecision(request.id, decision);
+    resolveWorkerRequest(request, decision);
     setRequests((current) => current?.filter((item) => item.id !== request.id) ?? []);
     setNotice(decision === 'accepted' ? copy.accepted : copy.declined);
     window.setTimeout(() => setNotice(''), 2800);
@@ -114,17 +113,23 @@ export function WorkerAvailable() {
       {requests === null ? <div className="grid gap-4" aria-label={language === 'ur' ? 'درخواستیں لوڈ ہو رہی ہیں' : 'Loading requests'}><div className="h-48 animate-pulse rounded-2xl bg-white/[0.04]" /><div className="h-48 animate-pulse rounded-2xl bg-white/[0.04]" /></div> : visible.length === 0 ? <div className="grid min-h-56 place-items-center rounded-2xl border border-dashed border-white/10 bg-white/[0.02] p-6 text-center text-sm text-white/45"><p><BriefcaseBusiness size={28} className="mx-auto mb-3 text-cyan" />{requests.length === 0 ? copy.resolved : copy.empty}</p></div> : <div className="grid gap-4">
         {visible.map((request) => {
           const Icon = tradeIcons[request.trade];
+          const title = request.sourceRequestId ? copy.newRequest : language === 'ur' ? copy.titles[request.title as keyof typeof copy.titles] || request.title : request.title;
+          const description = request.sourceRequestId
+            ? localizedText(language, request.description, request.descriptionEn, copy.detailsProvidedUrdu)
+            : language === 'ur' ? copy.descriptions[request.description as keyof typeof copy.descriptions] || request.description : request.description;
+          const area = language === 'ur' ? copy.areas[request.area as keyof typeof copy.areas] || request.area : request.area;
+          const postedTime = copy.postedTimes[request.time as keyof typeof copy.postedTimes] || request.time;
           return <article key={request.id} className="overflow-hidden rounded-2xl border border-white/[0.08] bg-white/[0.035]">
             <div className="flex flex-col gap-4 p-4 sm:flex-row sm:items-start sm:p-5">
               <span className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl border border-cyan/15 bg-cyan/[0.08] text-cyan"><Icon size={21} /></span>
-              <div className="min-w-0 flex-1"><div className="mb-1 flex flex-wrap items-center gap-2"><span className="text-[10px] font-bold tracking-wide text-cyan">#{request.id}</span><span className="rounded-full bg-cyan/10 px-2.5 py-1 text-[9px] font-semibold text-cyan">{selectedTradeName(request.trade)}</span><span className="rounded-full bg-orange/10 px-2.5 py-1 text-[9px] font-semibold text-orange">{request.appointmentTime.startsWith('Tomorrow · ') ? copy.tomorrow : copy.sameDay}</span></div><h2 className="text-sm font-bold leading-6 sm:text-base">{language === 'ur' ? copy.titles[request.title as keyof typeof copy.titles] : request.title}</h2><p className="mt-1 text-[11px] leading-5 text-white/45">{language === 'ur' ? copy.descriptions[request.description as keyof typeof copy.descriptions] : request.description}</p></div>
-              <div className="shrink-0 rounded-xl bg-emerald-300/[0.07] px-4 py-3 sm:min-w-36"><span className="block text-[9px] text-white/40">{copy.offer}</span><strong className="mt-1 block text-sm text-emerald-200">{request.price}</strong></div>
+              <div className="min-w-0 flex-1"><div className="mb-1 flex flex-wrap items-center gap-2"><span className="text-[10px] font-bold tracking-wide text-cyan">#{request.id}</span><span className="rounded-full bg-cyan/10 px-2.5 py-1 text-[9px] font-semibold text-cyan">{selectedTradeName(request.trade)}</span><span className="rounded-full bg-orange/10 px-2.5 py-1 text-[9px] font-semibold text-orange">{request.sourceRequestId ? copy.appointmentPending : request.appointmentTime.startsWith('Tomorrow · ') ? copy.tomorrow : copy.sameDay}</span></div><h2 className="text-sm font-bold leading-6 sm:text-base">{title}</h2><p className="mt-1 text-[11px] leading-5 text-white/45">{description}</p></div>
+              <div className="shrink-0 rounded-xl bg-emerald-300/[0.07] px-4 py-3 sm:min-w-36"><span className="block text-[9px] text-white/40">{copy.offer}</span><strong className="mt-1 block text-sm text-emerald-200">{request.sourceRequestId ? copy.quotePending : request.price}</strong></div>
             </div>
             <div className="grid grid-cols-2 gap-3 border-t border-white/[0.06] bg-[#101426]/40 px-4 py-3 text-[10px] sm:grid-cols-4 sm:px-5">
-              <span className="inline-flex items-center gap-2 text-white/55"><MapPin size={13} className="text-cyan" /><span>{language === 'ur' ? copy.areas[request.area as keyof typeof copy.areas] : request.area}<span className="ms-1 text-white/35">· {request.distance}</span></span></span>
-              <span className="inline-flex items-center gap-2 text-white/55"><Clock3 size={13} className="text-cyan" />{request.appointmentTime.startsWith('Tomorrow · ') ? `${copy.tomorrow} · ${request.appointmentTime.slice(11)}` : request.appointmentTime}</span>
-              <span className="col-span-2 inline-flex items-center gap-2 text-white/55 sm:col-span-1"><BriefcaseBusiness size={13} className="text-cyan" />{language === 'ur' ? copy.customers[request.customer as keyof typeof copy.customers] : request.customer}</span>
-              <span className="col-span-2 text-white/30 sm:col-span-1">{copy.postedTimes[request.time as keyof typeof copy.postedTimes]}</span>
+              <span className="inline-flex items-center gap-2 text-white/55"><MapPin size={13} className="text-cyan" /><span>{area}<span className="ms-1 text-white/35">· {request.sourceRequestId ? copy.distanceUnknown : request.distance}</span></span></span>
+              <span className="inline-flex items-center gap-2 text-white/55"><Clock3 size={13} className="text-cyan" />{request.sourceRequestId ? copy.appointmentPending : request.appointmentTime.startsWith('Tomorrow · ') ? `${copy.tomorrow} · ${request.appointmentTime.slice(11)}` : request.appointmentTime}</span>
+              <span className="col-span-2 inline-flex items-center gap-2 text-white/55 sm:col-span-1"><BriefcaseBusiness size={13} className="text-cyan" />{request.sourceRequestId ? copy.genericCustomer : language === 'ur' ? copy.customers[request.customer as keyof typeof copy.customers] || request.customer : request.customer}</span>
+              <span className="col-span-2 text-white/30 sm:col-span-1">{postedTime}</span>
             </div>
             <div className="flex flex-col-reverse gap-2 border-t border-white/[0.06] p-3 sm:flex-row sm:items-center sm:justify-end sm:p-4">
               <button type="button" onClick={() => resolveRequest(request, 'declined')} className="inline-flex min-h-10 items-center justify-center gap-2 rounded-xl px-4 text-[10px] font-semibold text-white/45 transition hover:bg-white/[0.05] hover:text-white"><X size={13} />{copy.decline}</button>

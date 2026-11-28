@@ -8,6 +8,7 @@ import { useT } from '@/contexts/LanguageProvider';
 import { customers, trades } from '@/lib/mockData';
 import { localizedText } from '@/lib/localization';
 import { applyWorkerStatusOverrides } from '@/lib/adminData';
+import { readLocalServiceRequests } from '@/lib/serviceRequestData';
 import type { Complaint, ServiceRequest, Worker } from '@/lib/types';
 
 export function AdminDashboard() {
@@ -20,7 +21,9 @@ export function AdminDashboard() {
   useEffect(() => {
     Promise.all([getWorkers(), getRequests(), getComplaints()]).then(([workerList, requestList, complaintList]) => {
       setWorkers(applyWorkerStatusOverrides(workerList));
-      setRequests(requestList);
+      const localRequests = readLocalServiceRequests();
+      const localIds = new Set(localRequests.map((request) => request.id));
+      setRequests([...localRequests, ...requestList.filter((request) => !localIds.has(request.id))]);
       setComplaints(complaintList);
     });
   }, []);

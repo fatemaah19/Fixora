@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useT } from '@/contexts/LanguageProvider';
 import { getBookings } from '@/lib/api';
+import { readLocalServiceRequests } from '@/lib/serviceRequestData';
 import { trades, workers } from '@/lib/mockData';
 import { localizedText } from '@/lib/localization';
 import type { ServiceRequest } from '@/lib/types';
@@ -31,7 +32,7 @@ export default function BookingsPage() {
 
   useEffect(() => {
     getBookings('c1').then((base) => {
-      const localRequests = JSON.parse(localStorage.getItem('fixora-local-requests') || '[]');
+      const localRequests = readLocalServiceRequests();
       const localBookings = JSON.parse(localStorage.getItem('fixora-local-bookings') || '[]');
       setList([...localRequests, ...localBookings].map(mapLocalBooking).concat(base));
     });

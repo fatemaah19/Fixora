@@ -12,7 +12,8 @@ import { LanguageToggle } from '@/components/LanguageToggle';
 import { Logo } from '@/components/Logo';
 import { useAuth } from '@/contexts/AuthProvider';
 import { useT } from '@/contexts/LanguageProvider';
-import { addAcceptedJob, mockAvailableJobs, readWorkerRequestDecisions, saveWorkerRequestDecision, type WorkerAvailableJob, type WorkerTrade as Trade } from '@/lib/workerData';
+import { readAvailableWorkerRequests, resolveWorkerRequest, type WorkerAvailableJob, type WorkerTrade as Trade } from '@/lib/workerData';
+import { localizedText } from '@/lib/localization';
 
 type IconComponent = LucideIcon;
 type JobStatus = 'upcoming' | 'inProgress' | 'completed';
@@ -40,7 +41,7 @@ const ur = {
   home: 'ڈیش بورڈ', jobs: 'میرے کام', newRequests: 'درخواستیں', earningsNav: 'آمدنی', logout: 'لاگ آؤٹ', todayLabel: 'آج',
   trades: { ac: 'اے سی ٹیکنیشن', electrician: 'الیکٹریشن', plumber: 'پلمبر', carpenter: 'کارپنٹر' },
   jobTitles: { 'AC service and cooling check': 'اے سی سروس اور کولنگ چیک', 'Ceiling fan installation': 'چھت والا پنکھا لگانا', 'Kitchen tap repair': 'کچن کے نل کی مرمت' },
-  requestTitles: { 'Install two ceiling lights': 'دو چھت کی لائٹس لگانا', 'AC making unusual noise': 'اے سی سے غیر معمولی آواز' },
+  requestTitles: { 'Install two ceiling lights': 'دو چھت کی لائٹس لگانا', 'AC making unusual noise': 'اے سی سے غیر معمولی آواز' }, newRequest: 'نئی سروس درخواست', quotePending: 'معاوضہ طے ہونا باقی ہے', detailsProvidedUrdu: 'صارف نے مسئلے کی تفصیل اردو میں فراہم کی ہے.',
   customers: { 'Ahmed Raza': 'احمد رضا', 'Fatima Noor': 'فاطمہ نور', 'Ali Hassan': 'علی حسن' },
   areas: { Gulgasht: 'گلگشت', 'Model Town': 'ماڈل ٹاؤن', 'Bosan Road': 'بوسن روڈ', 'Multan Cantt': 'ملتان کینٹ', 'Shah Rukn-e-Alam': 'شاہ رکن عالم' },
 };
@@ -55,7 +56,7 @@ const en = {
   home: 'Overview', jobs: 'My jobs', newRequests: 'Requests', earningsNav: 'Earnings', logout: 'Log out', todayLabel: 'Today',
   trades: { ac: 'AC technician', electrician: 'Electrician', plumber: 'Plumber', carpenter: 'Carpenter' },
   jobTitles: { 'AC service and cooling check': 'AC service and cooling check', 'Ceiling fan installation': 'Ceiling fan installation', 'Kitchen tap repair': 'Kitchen tap repair' },
-  requestTitles: { 'Install two ceiling lights': 'Install two ceiling lights', 'AC making unusual noise': 'AC making unusual noise' },
+  requestTitles: { 'Install two ceiling lights': 'Install two ceiling lights', 'AC making unusual noise': 'AC making unusual noise' }, newRequest: 'New service request', quotePending: 'Estimate pending', detailsProvidedUrdu: 'The customer provided the issue details in Urdu.',
   customers: { 'Ahmed Raza': 'Ahmed Raza', 'Fatima Noor': 'Fatima Noor', 'Ali Hassan': 'Ali Hassan' },
   areas: { Gulgasht: 'Gulgasht', 'Model Town': 'Model Town', 'Bosan Road': 'Bosan Road', 'Multan Cantt': 'Multan Cantt', 'Shah Rukn-e-Alam': 'Shah Rukn-e-Alam' },
 };
@@ -67,7 +68,7 @@ export function WorkerDashboard() {
   const copy = language === 'ur' ? ur : en;
   const [isOnline, setIsOnline] = useState(true);
   const [menuOpen, setMenuOpen] = useState(false);
-  const [pendingRequests, setPendingRequests] = useState<WorkerAvailableJob[]>(mockAvailableJobs.slice(0, 2));
+  const [pendingRequests, setPendingRequests] = useState<WorkerAvailableJob[]>([]);
   const [notice, setNotice] = useState('');
 
   useEffect(() => {
@@ -76,8 +77,7 @@ export function WorkerDashboard() {
   }, []);
 
   useEffect(() => {
-    const decisions = readWorkerRequestDecisions();
-    setPendingRequests(mockAvailableJobs.slice(0, 2).filter((request) => !decisions[request.id]));
+    setPendingRequests(readAvailableWorkerRequests().slice(0, 2));
   }, []);
 
   function toggleAvailability() {
@@ -87,11 +87,8 @@ export function WorkerDashboard() {
   }
 
   function acceptRequest(id: string) {
-    const request = mockAvailableJobs.find((item) => item.id === id);
-    if (request) {
-      addAcceptedJob(request);
-      saveWorkerRequestDecision(id, 'accepted');
-    }
+    const request = pendingRequests.find((item) => item.id === id);
+    if (request) resolveWorkerRequest(request, 'accepted');
     setPendingRequests((current) => current.filter((request) => request.id !== id));
     setNotice(copy.accepted);
     window.setTimeout(() => setNotice(''), 2800);
@@ -189,7 +186,7 @@ export function WorkerDashboard() {
             {pendingRequests.map((request) => {
               const Icon = tradeIcons[request.trade];
               return <article key={request.id} className="rounded-xl border border-white/[0.06] bg-[#101426]/70 p-3 sm:p-4">
-                <div className="flex items-start gap-3"><span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-orange/10 text-orange"><Icon size={18} /></span><div className="min-w-0 flex-1"><div className="flex flex-wrap items-start justify-between gap-2"><h3 className="text-xs font-bold leading-6 sm:text-sm">{language === 'ur' ? copy.requestTitles[request.title as keyof typeof copy.requestTitles] : request.title}</h3><strong className="whitespace-nowrap text-xs text-emerald-200">{request.price}</strong></div><div className="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-[10px] text-white/45"><span className="inline-flex items-center gap-1"><MapPin size={12} />{language === 'ur' ? copy.areas[request.area as keyof typeof copy.areas] : request.area} · {request.distance}</span><span>{request.time}</span></div></div></div>
+                <div className="flex items-start gap-3"><span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-orange/10 text-orange"><Icon size={18} /></span><div className="min-w-0 flex-1"><div className="flex flex-wrap items-start justify-between gap-2"><h3 className="text-xs font-bold leading-6 sm:text-sm">{request.sourceRequestId ? copy.newRequest : language === 'ur' ? copy.requestTitles[request.title as keyof typeof copy.requestTitles] || request.title : request.title}</h3><strong className="whitespace-nowrap text-xs text-emerald-200">{request.sourceRequestId ? copy.quotePending : request.price}</strong></div>{request.sourceRequestId && <p className="mt-1 text-[10px] leading-5 text-white/45">{localizedText(language, request.description, request.descriptionEn, copy.detailsProvidedUrdu)}</p>}<div className="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-[10px] text-white/45"><span className="inline-flex items-center gap-1"><MapPin size={12} />{language === 'ur' ? copy.areas[request.area as keyof typeof copy.areas] || request.area : request.area}{request.distance && ` · ${request.distance}`}</span><span>{request.time}</span></div></div></div>
                 <div className="mt-3 flex items-center justify-between border-t border-white/[0.06] pt-3"><span className="text-[10px] text-white/40">{language === 'ur' ? copy.trades[request.trade] : copy.trades[request.trade]}</span><button type="button" onClick={() => acceptRequest(request.id)} className="inline-flex min-h-9 items-center gap-2 rounded-xl bg-blue px-3 text-[10px] font-bold text-white transition hover:brightness-110 sm:px-4">{copy.accept}<ArrowUpRight size={13} /></button></div>
               </article>;
             })}

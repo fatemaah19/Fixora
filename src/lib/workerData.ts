@@ -1,3 +1,5 @@
+import { readLocalServiceRequests, updateLocalServiceRequest } from './serviceRequestData';
+
 export type WorkerTrade = 'ac' | 'electrician' | 'plumber' | 'carpenter';
 export type WorkerJobStatus = 'accepted' | 'on_the_way' | 'in_progress' | 'completed';
 export type WorkerJob = {
@@ -9,6 +11,9 @@ export type WorkerJob = {
   time: string;
   price: string;
   status: WorkerJobStatus;
+  description?: string;
+  descriptionEn?: string;
+  sourceRequestId?: string;
 };
 
 export type WorkerAvailableJob = {
@@ -22,6 +27,8 @@ export type WorkerAvailableJob = {
   price: string;
   time: string;
   appointmentTime: string;
+  descriptionEn?: string;
+  sourceRequestId?: string;
 };
 
 export type WorkerRequestDecision = 'accepted' | 'declined';
@@ -44,6 +51,36 @@ export const mockAvailableJobs: WorkerAvailableJob[] = [
   { id: 'R-219', trade: 'carpenter', title: 'Adjust wardrobe door', description: 'One wardrobe door is misaligned and does not close smoothly.', customer: 'Bilal Ahmed', area: 'Model Town', distance: '3.2 km', price: 'PKR 2,200', time: '2 hours ago', appointmentTime: 'Tomorrow · 10:00' },
   { id: 'R-223', trade: 'electrician', title: 'Check a faulty wall switch', description: 'The bedroom switch is intermittent; please inspect and repair it.', customer: 'Zainab Ali', area: 'Bosan Road', distance: '5.0 km', price: 'PKR 1,500', time: '3 hours ago', appointmentTime: 'Tomorrow · 12:00' },
 ];
+
+export function readAvailableWorkerRequests(): WorkerAvailableJob[] {
+  const decisions = readWorkerRequestDecisions();
+  const customerRequests: WorkerAvailableJob[] = readLocalServiceRequests()
+    .filter((request) => request.status === 'requested')
+    .map((request) => ({
+      id: request.id,
+      trade: request.tradeId,
+      title: 'New service request',
+      description: request.description,
+      descriptionEn: request.descriptionEn,
+      customer: 'Customer',
+      area: request.area,
+      distance: '',
+      price: '',
+      time: request.createdAt,
+      appointmentTime: '',
+      sourceRequestId: request.id,
+    }));
+
+  return [...customerRequests, ...mockAvailableJobs].filter((request) => !decisions[request.id]);
+}
+
+export function resolveWorkerRequest(request: WorkerAvailableJob, decision: WorkerRequestDecision): void {
+  if (decision === 'accepted') {
+    addAcceptedJob(request);
+    if (request.sourceRequestId) updateLocalServiceRequest(request.sourceRequestId, { status: 'booked', workerId: 'w1' });
+  }
+  saveWorkerRequestDecision(request.id, decision);
+}
 
 export function readWorkerRequestDecisions(): WorkerRequestDecisions {
   try {
@@ -76,9 +113,12 @@ export function addAcceptedJob(request: WorkerAvailableJob) {
     title: request.title,
     customer: request.customer,
     area: request.area,
-    time: request.appointmentTime,
-    price: request.price,
+    time: request.appointmentTime || 'To be arranged',
+    price: request.sourceRequestId ? 'Pending estimate' : request.price,
     status: 'accepted',
+    description: request.description,
+    descriptionEn: request.descriptionEn,
+    sourceRequestId: request.sourceRequestId,
   };
   localStorage.setItem(WORKER_JOBS_STORAGE_KEY, JSON.stringify([...current, next]));
 }

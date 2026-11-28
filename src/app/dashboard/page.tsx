@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { ArrowUpLeft, ArrowLeft, ArrowRight, Plus, Wrench, Zap, Droplets, Snowflake, Hammer, CalendarDays, Clock, CheckCircle2, CircleDashed, ShieldCheck, Star, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useT } from '@/contexts/LanguageProvider';
 import { getBookings } from '@/lib/api';
+import { readLocalServiceRequests } from '@/lib/serviceRequestData';
 import { customers, trades } from '@/lib/mockData';
 import { localizedText } from '@/lib/localization';
 import type { ServiceRequest } from '@/lib/types';
@@ -11,7 +12,7 @@ const tradeIcons: Record<string,any>={electrician:Zap,ac:Snowflake,plumber:Dropl
 const tradeColors: Record<string,string>={electrician:'#FFC35A',ac:'#53D9F7',plumber:'#62B7FF',carpenter:'#D1A5FF'};
 export default function DashboardPage(){
  const {language}=useT(); const ur=language==='ur'; const [bookings,setBookings]=useState<ServiceRequest[]>([]); const [name,setName]=useState('محمد احمد'); const displayName = localizedText(language, name, customers.find((customer) => customer.name === name)?.nameEn, 'there');
- useEffect(()=>{getBookings('c1').then(base=>{const local=JSON.parse(localStorage.getItem('fixora-local-requests')||'[]');setBookings([...local,...base])}); const saved=localStorage.getItem('fixora-customer-name'); if(saved)setName(saved)},[]);
+ useEffect(()=>{getBookings('c1').then(base=>{const local=readLocalServiceRequests();setBookings([...local,...base.filter(item=>!local.some(request=>request.id===item.id))])}); const saved=localStorage.getItem('fixora-customer-name'); if(saved)setName(saved)},[]);
  const status=(s:string)=> (ur ? (({requested:'درخواست موصول',booked:'بکنگ کنفرم',completed:'مکمل',cancelled:'منسوخ'} as any)[s]||s) : (({requested:'Requested',booked:'Booked',completed:'Completed',cancelled:'Cancelled'} as any)[s]||s));
  const current=bookings.filter(b=>b.status==='booked'||b.status==='requested'); const done=bookings.filter(b=>b.status==='completed');
  return <div className="fx-dashboard-home">
