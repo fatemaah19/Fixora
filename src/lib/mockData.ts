@@ -8,9 +8,9 @@ export const trades: { id: TradeId; label: string; labelUr: string }[] = [
   { id: 'carpenter', label: 'Carpenter', labelUr: 'کارپنٹر' },
 ];
 export const customers: Customer[] = [
-  {id:'c1',name:'محمد احمد',phone:'03001112223',area:'Gulgasht'},
-  {id:'c2',name:'علی رضا',phone:'03002223334',area:'Multan Cantt'},
-  {id:'c3',name:'فاطمہ نور',phone:'03003334445',area:'Model Town'},
+  {id:'c1',name:'محمد احمد',nameEn:'Muhammad Ahmed',phone:'03001112223',area:'Gulgasht'},
+  {id:'c2',name:'علی رضا',nameEn:'Ali Raza',phone:'03002223334',area:'Multan Cantt'},
+  {id:'c3',name:'فاطمہ نور',nameEn:'Fatima Noor',phone:'03003334445',area:'Model Town'},
 ];
 export const workers: Worker[] = [
   {id:'w1',name:'محمد عثمان',nameEn:'Muhammad Usman',phone:'03007654321',whatsapp:'03007654321',tradeId:'electrician',experience:9,rating:4.9,reviews:128,area:'Gulgasht',bio:'گھریلو وائرنگ، پنکھے، لائٹس اور بجلی کی خرابی کی مرمت۔',bioEn:'Home wiring, fan and light installation, and electrical fault repairs.',status:'approved',avatar:'MO'},
@@ -23,16 +23,16 @@ export const workers: Worker[] = [
   {id:'w8',name:'فہد محمود',nameEn:'Fahad Mahmood',phone:'03001234007',whatsapp:'03001234007',tradeId:'carpenter',experience:2,rating:4.1,reviews:17,area:'Shah Rukn-e-Alam Colony',bio:'فرنیچر کی مرمت اور لکڑی کے چھوٹے بڑے کام۔',bioEn:'Furniture repairs and carpentry jobs of all sizes.',status:'rejected',avatar:'FM'},
 ];
 export const requests: ServiceRequest[] = [
-  {id:'r1',customerId:'c1',tradeId:'electrician',description:'کمرے کا پنکھا نہیں چل رہا',area:'Gulgasht',status:'booked',workerId:'w1',createdAt:'2026-11-18'},
-  {id:'r2',customerId:'c2',tradeId:'plumber',description:'کچن کے نلکے سے پانی لیک ہو رہا ہے',area:'Multan Cantt',status:'requested',createdAt:'2026-11-19'},
-  {id:'r3',customerId:'c3',tradeId:'ac',description:'اے سی ٹھنڈا نہیں کر رہا',area:'Model Town',status:'completed',workerId:'w5',createdAt:'2026-11-15'},
-  {id:'r4',customerId:'c1',tradeId:'carpenter',description:'دروازے کا قبضہ ٹھیک کروانا ہے',area:'Gulgasht',status:'requested',createdAt:'2026-11-20'},
-  {id:'r5',customerId:'c2',tradeId:'electrician',description:'سوئچ بورڈ میں مسئلہ ہے',area:'Multan Cantt',status:'completed',workerId:'w2',createdAt:'2026-11-12'},
-  {id:'r6',customerId:'c3',tradeId:'plumber',description:'واش بیسن بند ہے',area:'Model Town',status:'booked',workerId:'w3',createdAt:'2026-11-17'},
-  {id:'r7',customerId:'c1',tradeId:'ac',description:'اے سی کی سروس درکار ہے',area:'Gulgasht',status:'cancelled',createdAt:'2026-11-10'},
-  {id:'r8',customerId:'c2',tradeId:'carpenter',description:'الماری کا دروازہ درست کرنا ہے',area:'Multan Cantt',status:'requested',createdAt:'2026-11-20'},
-  {id:'r9',customerId:'c3',tradeId:'electrician',description:'لائٹ بار بار بند ہو جاتی ہے',area:'Model Town',status:'booked',workerId:'w1',createdAt:'2026-11-16'},
-  {id:'r10',customerId:'c1',tradeId:'plumber',description:'موٹر سے پانی نہیں آ رہا',area:'Gulgasht',status:'completed',workerId:'w3',createdAt:'2026-11-08'},
+  {id:'r1',customerId:'c1',tradeId:'electrician',description:'کمرے کا پنکھا نہیں چل رہا',descriptionEn:'The room fan is not working.',area:'Gulgasht',status:'booked',workerId:'w1',createdAt:'2026-11-18'},
+  {id:'r2',customerId:'c2',tradeId:'plumber',description:'کچن کے نلکے سے پانی لیک ہو رہا ہے',descriptionEn:'Water is leaking from the kitchen tap.',area:'Multan Cantt',status:'requested',createdAt:'2026-11-19'},
+  {id:'r3',customerId:'c3',tradeId:'ac',description:'اے سی ٹھنڈا نہیں کر رہا',descriptionEn:'The AC is not cooling.',area:'Model Town',status:'completed',workerId:'w5',createdAt:'2026-11-15'},
+  {id:'r4',customerId:'c1',tradeId:'carpenter',description:'دروازے کا قبضہ ٹھیک کروانا ہے',descriptionEn:'The door hinge needs repair.',area:'Gulgasht',status:'requested',createdAt:'2026-11-20'},
+  {id:'r5',customerId:'c2',tradeId:'electrician',description:'سوئچ بورڈ میں مسئلہ ہے',descriptionEn:'There is a problem with the switchboard.',area:'Multan Cantt',status:'completed',workerId:'w2',createdAt:'2026-11-12'},
+  {id:'r6',customerId:'c3',tradeId:'plumber',description:'واش بیسن بند ہے',descriptionEn:'The washbasin drain is blocked.',area:'Model Town',status:'booked',workerId:'w3',createdAt:'2026-11-17'},
+  {id:'r7',customerId:'c1',tradeId:'ac',description:'اے سی کی سروس درکار ہے',descriptionEn:'AC servicing is required.',area:'Gulgasht',status:'cancelled',createdAt:'2026-11-10'},
+  {id:'r8',customerId:'c2',tradeId:'carpenter',description:'الماری کا دروازہ درست کرنا ہے',descriptionEn:'The wardrobe door needs adjustment.',area:'Multan Cantt',status:'requested',createdAt:'2026-11-20'},
+  {id:'r9',customerId:'c3',tradeId:'electrician',description:'لائٹ بار بار بند ہو جاتی ہے',descriptionEn:'The light keeps turning off.',area:'Model Town',status:'booked',workerId:'w1',createdAt:'2026-11-16'},
+  {id:'r10',customerId:'c1',tradeId:'plumber',description:'موٹر سے پانی نہیں آ رہا',descriptionEn:'The water pump is not bringing water.',area:'Gulgasht',status:'completed',workerId:'w3',createdAt:'2026-11-08'},
 ];
 export const timeSlots: TimeSlot[] = Array.from({length: 24}, (_, i) => ({
   id:`s${i+1}`, workerId:`w${(i%5)+1}`, date:`2026-11-${String(21+Math.floor(i/8)).padStart(2,'0')}`,
@@ -43,7 +43,7 @@ export const complaints: Complaint[] = [
   {id:'cp2',customerId:'c2',bookingId:'r5',message:'قیمت پہلے نہیں بتائی گئی۔',status:'resolved',response:'معذرت، متعلقہ کاریگر کو ہدایت دے دی گئی ہے۔'},
 ];
 export const appliances: Appliance[] = [
-  {id:'a1',customerId:'c1',name:'ایئر کنڈیشنر',brand:'Haier',warrantyUntil:'2027-06-30',history:['2026-06-12 — سالانہ سروس']},
-  {id:'a2',customerId:'c1',name:'واٹر ڈسپنسر',brand:'Dawlance',warrantyUntil:'2027-02-15',history:['2026-02-20 — کولنگ چیک']},
-  {id:'a3',customerId:'c2',name:'واشنگ مشین',brand:'Samsung',warrantyUntil:'2028-01-10',history:['2026-09-04 — ڈرین پائپ کی مرمت']},
+  {id:'a1',customerId:'c1',name:'ایئر کنڈیشنر',nameEn:'Air Conditioner',brand:'Haier',warrantyUntil:'2027-06-30',history:['2026-06-12 — سالانہ سروس'],historyEn:['2026-06-12 — Annual service']},
+  {id:'a2',customerId:'c1',name:'واٹر ڈسپنسر',nameEn:'Water Dispenser',brand:'Dawlance',warrantyUntil:'2027-02-15',history:['2026-02-20 — کولنگ چیک'],historyEn:['2026-02-20 — Cooling check']},
+  {id:'a3',customerId:'c2',name:'واشنگ مشین',nameEn:'Washing Machine',brand:'Samsung',warrantyUntil:'2028-01-10',history:['2026-09-04 — ڈرین پائپ کی مرمت'],historyEn:['2026-09-04 — Drain pipe repair']},
 ];
