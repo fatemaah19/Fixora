@@ -6,9 +6,9 @@ export type BookingStatus = 'requested' | 'booked' | 'completed' | 'cancelled';
 
 export interface Customer { id: string; name: string; phone: string; area: string; }
 export interface Worker {
-  id: string; name: string; phone: string; whatsapp: string; tradeId: TradeId;
+  id: string; name: string; nameEn?: string; phone: string; whatsapp: string; tradeId: TradeId;
   experience: number; rating: number; reviews: number; area: string;
-  bio: string; status: WorkerStatus; avatar: string;
+  bio: string; bioEn?: string; status: WorkerStatus; avatar: string;
 }
 export interface TimeSlot { id: string; workerId: string; date: string; start: string; end: string; booked: boolean; }
 export interface ServiceRequest { id: string; customerId: string; tradeId: TradeId; description: string; area: string; status: BookingStatus; workerId?: string; slotId?: string; createdAt: string; }
