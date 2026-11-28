@@ -27,6 +27,7 @@ export type WorkerAvailableJob = {
   price: string;
   time: string;
   appointmentTime: string;
+  workerId?: string;
   descriptionEn?: string;
   sourceRequestId?: string;
 };
@@ -55,7 +56,7 @@ export const mockAvailableJobs: WorkerAvailableJob[] = [
 export function readAvailableWorkerRequests(): WorkerAvailableJob[] {
   const decisions = readWorkerRequestDecisions();
   const customerRequests: WorkerAvailableJob[] = readLocalServiceRequests()
-    .filter((request) => request.status === 'requested')
+    .filter((request) => request.status === 'requested' && (!request.workerId || request.workerId === 'w1'))
     .map((request) => ({
       id: request.id,
       trade: request.tradeId,
@@ -68,6 +69,7 @@ export function readAvailableWorkerRequests(): WorkerAvailableJob[] {
       price: '',
       time: request.createdAt,
       appointmentTime: '',
+      workerId: request.workerId,
       sourceRequestId: request.id,
     }));
 
@@ -77,7 +79,7 @@ export function readAvailableWorkerRequests(): WorkerAvailableJob[] {
 export function resolveWorkerRequest(request: WorkerAvailableJob, decision: WorkerRequestDecision): void {
   if (decision === 'accepted') {
     addAcceptedJob(request);
-    if (request.sourceRequestId) updateLocalServiceRequest(request.sourceRequestId, { status: 'booked', workerId: 'w1' });
+    if (request.sourceRequestId) updateLocalServiceRequest(request.sourceRequestId, { status: 'booked', workerId: request.workerId || 'w1' });
   }
   saveWorkerRequestDecision(request.id, decision);
 }
