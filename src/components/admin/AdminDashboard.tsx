@@ -8,6 +8,7 @@ import { useT } from '@/contexts/LanguageProvider';
 import { customers, trades, workers as mockWorkers } from '@/lib/mockData';
 import { localizedText } from '@/lib/localization';
 import { applyWorkerStatusOverrides } from '@/lib/adminData';
+import { mergeLocalComplaints } from '@/lib/complaintData';
 import { readLocalServiceRequests } from '@/lib/serviceRequestData';
 import type { Complaint, ServiceRequest, Worker } from '@/lib/types';
 
@@ -24,7 +25,7 @@ export function AdminDashboard() {
       const localRequests = readLocalServiceRequests();
       const localIds = new Set(localRequests.map((request) => request.id));
       setRequests([...localRequests, ...requestList.filter((request) => !localIds.has(request.id))]);
-      setComplaints(complaintList);
+      setComplaints(mergeLocalComplaints(complaintList));
     });
   }, []);
 
@@ -47,7 +48,7 @@ export function AdminDashboard() {
       <MetricCard icon={UsersRound} label={copy.workers} value={pendingWorkers.length} accent="cyan" href="/admin/workers" />
       <MetricCard icon={Clock3} label={copy.requests} value={pendingRequests.length} accent="blue" />
       <MetricCard icon={CalendarCheck2} label={copy.bookings} value={activeBookings.length} accent="emerald" />
-      <MetricCard icon={MessageSquareWarning} label={copy.complaints} value={openComplaints.length} accent="orange" />
+      <MetricCard icon={MessageSquareWarning} label={copy.complaints} value={openComplaints.length} accent="orange" href="/admin/complaints" />
     </section>
 
     <section className="grid gap-5 xl:grid-cols-[1.35fr_0.85fr]">

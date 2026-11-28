@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useState } from 'react';
-import { ClipboardCheck, LayoutDashboard, LogOut, Menu, ShieldCheck, UsersRound, X } from 'lucide-react';
+import { ClipboardCheck, LayoutDashboard, LogOut, Menu, MessageSquareWarning, ShieldCheck, UsersRound, X } from 'lucide-react';
 import { LanguageToggle } from '@/components/LanguageToggle';
 import { useAuth } from '@/contexts/AuthProvider';
 import { useT } from '@/contexts/LanguageProvider';
@@ -11,6 +11,7 @@ import { useT } from '@/contexts/LanguageProvider';
 const navItems = [
   { href: '/admin/dashboard', key: 'overview', icon: LayoutDashboard },
   { href: '/admin/workers', key: 'workers', icon: UsersRound },
+  { href: '/admin/complaints', key: 'complaints', icon: MessageSquareWarning },
 ];
 
 export function AdminShell({ children }: { children: React.ReactNode }) {
@@ -21,9 +22,9 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const ur = language === 'ur';
   const labels = ur
-    ? { overview: 'جائزہ', workers: 'کاریگروں کی درخواستیں', section: 'ایڈمن پینل', admin: 'ایڈمن', logout: 'لاگ آؤٹ', menu: 'مینو کھولیں', close: 'مینو بند کریں' }
-    : { overview: 'Overview', workers: 'Worker applications', section: 'ADMIN PANEL', admin: 'Administrator', logout: 'Log out', menu: 'Open menu', close: 'Close menu' };
-  const activeLabel = pathname.startsWith('/admin/workers') ? labels.workers : labels.overview;
+    ? { overview: 'جائزہ', workers: 'کاریگروں کی درخواستیں', complaints: 'شکایات', section: 'ایڈمن پینل', admin: 'ایڈمن', logout: 'لاگ آؤٹ', menu: 'مینو کھولیں', close: 'مینو بند کریں' }
+    : { overview: 'Overview', workers: 'Worker applications', complaints: 'Support complaints', section: 'ADMIN PANEL', admin: 'Administrator', logout: 'Log out', menu: 'Open menu', close: 'Close menu' };
+  const activeLabel = pathname.startsWith('/admin/workers') ? labels.workers : pathname.startsWith('/admin/complaints') ? labels.complaints : labels.overview;
 
   function handleLogout() {
     logout();
@@ -48,7 +49,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
         {navItems.map(({ href, key, icon: Icon }) => {
           const active = key === 'workers' ? pathname.startsWith(href) : pathname === href;
           return <Link key={href} href={href} onClick={() => setMenuOpen(false)} aria-current={active ? 'page' : undefined} className={`flex min-h-12 items-center gap-3 rounded-xl px-3 text-xs font-semibold transition ${active ? 'border border-cyan/20 bg-cyan/10 text-white' : 'text-white/55 hover:bg-white/[0.04] hover:text-white'}`}>
-            <Icon size={17} className={active ? 'text-cyan' : ''} /><span>{labels[key as 'overview' | 'workers']}</span>
+            <Icon size={17} className={active ? 'text-cyan' : ''} /><span>{labels[key as 'overview' | 'workers' | 'complaints']}</span>
           </Link>;
         })}
       </nav>
