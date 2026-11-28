@@ -54,6 +54,7 @@ export default function BookingsPage() {
     const review: LocalBookingReview = {
       bookingId: reviewing.id,
       customerId: reviewing.customerId,
+      workerId: reviewing.workerId,
       rating,
       comment: comment.trim(),
       createdAt: new Date().toISOString().slice(0, 10),
