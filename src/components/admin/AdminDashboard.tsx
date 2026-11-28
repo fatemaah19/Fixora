@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react';
 import { ArrowUpLeft, ArrowUpRight, AlertCircle, CalendarCheck2, Clock3, MessageSquareWarning, UsersRound, UserRoundCheck } from 'lucide-react';
 import { getComplaints, getRequests, getWorkers } from '@/lib/api';
 import { useT } from '@/contexts/LanguageProvider';
-import { customers, trades } from '@/lib/mockData';
+import { customers, trades, workers as mockWorkers } from '@/lib/mockData';
 import { localizedText } from '@/lib/localization';
 import { applyWorkerStatusOverrides } from '@/lib/adminData';
 import { readLocalServiceRequests } from '@/lib/serviceRequestData';
@@ -34,8 +34,8 @@ export function AdminDashboard() {
   const openComplaints = complaints.filter((complaint) => complaint.status === 'open');
   const recentRequests = [...requests].sort((a, b) => b.createdAt.localeCompare(a.createdAt)).slice(0, 5);
   const copy = ur
-    ? { eyebrow: 'ایڈمن جائزہ', title: 'آج کا آپریشنل خلاصہ', subtitle: 'کاریگروں کی درخواستیں اور سروس کی سرگرمی ایک جگہ دیکھیں۔', workers: 'زیرِ جائزہ درخواستیں', requests: 'نئی سروس درخواستیں', bookings: 'فعال بکنگز', complaints: 'کھلی شکایات', applications: 'کاریگروں کی درخواستیں', allApplications: 'تمام درخواستیں دیکھیں', recent: 'حالیہ سروس سرگرمی', empty: 'کوئی حالیہ درخواست نہیں', pending: 'زیرِ جائزہ', customer: 'صارف', status: { requested: 'نئی', booked: 'بک شدہ', completed: 'مکمل', cancelled: 'منسوخ' } }
-    : { eyebrow: 'ADMIN OVERVIEW', title: 'Operations at a glance', subtitle: 'Review worker applications and service activity in one place.', workers: 'Applications to review', requests: 'New service requests', bookings: 'Active bookings', complaints: 'Open complaints', applications: 'Worker applications', allApplications: 'View all applications', recent: 'Recent service activity', empty: 'No recent requests', pending: 'Pending review', customer: 'Customer', status: { requested: 'New', booked: 'Booked', completed: 'Completed', cancelled: 'Cancelled' } };
+    ? { eyebrow: 'ایڈمن جائزہ', title: 'آج کا آپریشنل خلاصہ', subtitle: 'کاریگروں کی درخواستیں اور سروس کی سرگرمی ایک جگہ دیکھیں۔', workers: 'زیرِ جائزہ درخواستیں', requests: 'نئی سروس درخواستیں', bookings: 'فعال بکنگز', complaints: 'کھلی شکایات', applications: 'کاریگروں کی درخواستیں', allApplications: 'تمام درخواستیں دیکھیں', recent: 'حالیہ سروس سرگرمی', empty: 'کوئی حالیہ درخواست نہیں', pending: 'زیرِ جائزہ', customer: 'صارف', professional: 'کاریگر', status: { requested: 'نئی', booked: 'بک شدہ', completed: 'مکمل', cancelled: 'منسوخ' } }
+    : { eyebrow: 'ADMIN OVERVIEW', title: 'Operations at a glance', subtitle: 'Review worker applications and service activity in one place.', workers: 'Applications to review', requests: 'New service requests', bookings: 'Active bookings', complaints: 'Open complaints', applications: 'Worker applications', allApplications: 'View all applications', recent: 'Recent service activity', empty: 'No recent requests', pending: 'Pending review', customer: 'Customer', professional: 'Professional', status: { requested: 'New', booked: 'Booked', completed: 'Completed', cancelled: 'Cancelled' } };
 
   return <div className="grid gap-6 sm:gap-8">
     <section className="flex flex-col justify-between gap-5 rounded-3xl border border-cyan/10 bg-[radial-gradient(ellipse_at_top_left,_rgba(83,217,247,0.13),_transparent_56%),linear-gradient(120deg,_rgba(20,30,54,0.98),_rgba(13,18,32,0.9))] p-5 sm:flex-row sm:items-end sm:p-7">
@@ -56,10 +56,11 @@ export function AdminDashboard() {
         {recentRequests.length === 0 ? <p className="rounded-xl border border-dashed border-white/10 p-7 text-center text-xs text-white/40">{copy.empty}</p> : <div className="divide-y divide-white/[0.06]">{recentRequests.map((request) => {
           const trade = trades.find((item) => item.id === request.tradeId);
           const customer = customers.find((item) => item.id === request.customerId);
+          const assignedWorker = mockWorkers.find((item) => item.id === request.workerId);
           const status = copy.status[request.status];
           const statusStyle = request.status === 'requested' ? 'bg-blue/10 text-blue' : request.status === 'booked' ? 'bg-cyan/10 text-cyan' : request.status === 'completed' ? 'bg-emerald-300/10 text-emerald-200' : 'bg-white/[0.06] text-white/45';
           return <article key={request.id} className="flex flex-col gap-3 py-4 sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex min-w-0 items-start gap-3"><span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-white/[0.05] text-cyan"><CalendarCheck2 size={16} /></span><div className="min-w-0"><div className="flex flex-wrap items-center gap-2"><strong className="text-xs">{ur ? trade?.labelUr : trade?.label}</strong><span className={`rounded-full px-2 py-1 text-[9px] font-semibold ${statusStyle}`}>{status}</span></div><p className="mt-1 truncate text-[11px] text-white/55">{localizedText(language, request.description, request.descriptionEn, 'Request details were submitted in Urdu.')}</p><small className="mt-1 block text-[9px] text-white/35">{copy.customer}: {localizedText(language, customer?.name || '', customer?.nameEn, 'Customer')} · {request.area}</small></div></div><time className="ps-12 text-[9px] text-white/35 sm:ps-0">{request.createdAt}</time>
+            <div className="flex min-w-0 items-start gap-3"><span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-white/[0.05] text-cyan"><CalendarCheck2 size={16} /></span><div className="min-w-0"><div className="flex flex-wrap items-center gap-2"><strong className="text-xs">{ur ? trade?.labelUr : trade?.label}</strong><span className={`rounded-full px-2 py-1 text-[9px] font-semibold ${statusStyle}`}>{status}</span></div><p className="mt-1 truncate text-[11px] text-white/55">{localizedText(language, request.description, request.descriptionEn, 'Request details were submitted in Urdu.')}</p><small className="mt-1 block text-[9px] text-white/35">{copy.customer}: {localizedText(language, customer?.name || '', customer?.nameEn, 'Customer')} · {request.area}{assignedWorker && <> · {copy.professional}: {localizedText(language, assignedWorker.name, assignedWorker.nameEn, 'Professional')}</>}</small></div></div><time className="ps-12 text-[9px] text-white/35 sm:ps-0">{request.createdAt}</time>
           </article>;
         })}</div>}
       </div>
