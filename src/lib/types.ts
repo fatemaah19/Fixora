@@ -12,5 +12,5 @@ export interface Worker {
 }
 export interface TimeSlot { id: string; workerId: string; date: string; start: string; end: string; booked: boolean; }
 export interface ServiceRequest { id: string; customerId: string; tradeId: TradeId; description: string; descriptionEn?: string; area: string; status: BookingStatus; workerId?: string; slotId?: string; createdAt: string; }
-export interface Complaint { id: string; customerId: string; bookingId?: string; message: string; status: 'open' | 'resolved'; response?: string; }
+export interface Complaint { id: string; customerId: string; bookingId?: string; message: string; status: 'open' | 'resolved'; response?: string; createdAt?: string; }
 export interface Appliance { id: string; customerId: string; name: string; nameEn?: string; brand: string; warrantyUntil: string; history: string[]; historyEn?: string[]; }
