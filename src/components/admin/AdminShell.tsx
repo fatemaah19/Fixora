@@ -33,7 +33,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
   return <div dir={ur ? 'rtl' : 'ltr'} className="flex min-h-screen bg-[#090d18] text-white">
     {menuOpen && <button aria-label={labels.close} onClick={() => setMenuOpen(false)} className="fixed inset-0 z-40 bg-black/70 lg:hidden" />}
     <aside
-      className={`fixed inset-y-0 z-50 flex w-[min(84vw,19rem)] flex-col border-white/[0.08] bg-[#0d1220] p-5 transition-transform duration-200 lg:sticky lg:top-0 lg:h-screen lg:z-auto lg:w-72 lg:shrink-0 lg:translate-x-0 lg:border-e ${menuOpen ? 'translate-x-0' : ''}`}
+      className={`fixed inset-y-0 z-50 flex w-[min(84vw,19rem)] flex-col border-white/[0.08] bg-[#0d1220] p-5 transition-transform duration-200 lg:sticky lg:top-0 lg:h-screen lg:z-auto lg:w-72 lg:shrink-0 lg:translate-x-0 lg:border-e ${menuOpen ? 'translate-x-0' : ur ? 'translate-x-[105%]' : '-translate-x-[105%]'}`}
       style={{ insetInlineStart: 0 }}
     >
       <div className="flex items-center justify-between gap-3 border-b border-white/[0.08] pb-5">
